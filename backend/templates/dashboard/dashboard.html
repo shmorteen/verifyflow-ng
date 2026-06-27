@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — VerifyFlow NG{% endblock %}
+{% block content %}
+<div class="card">
+    <h1>Applicant Dashboard</h1>
+    <form method="get" style="display:flex; gap:12px; align-items:end;">
+        <div style="flex:2"><label>Search</label><input name="q" value="{{ query }}" placeholder="Search by name"></div>
+        <div style="flex:1"><label>Status</label><select name="status"><option value="">All</option><option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option><option value="under_review" {% if status == "under_review" %}selected{% endif %}>Under Review</option><option value="approved" {% if status == "approved" %}selected{% endif %}>Approved</option><option value="rejected" {% if status == "rejected" %}selected{% endif %}>Rejected</option></select></div>
+        <button class="btn" type="submit">Filter</button>
+        <a class="btn" href="{% url 'export_applicants_csv' %}">Export CSV</a>
+    </form>
+</div>
+<div class="card">
+    <table>
+        <thead><tr><th>Name</th><th>Type</th><th>Masked ID</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+        <tbody>
+            {% for applicant in applicants %}
+                <tr><td>{{ applicant.full_name }}</td><td>{{ applicant.get_applicant_type_display }}</td><td>{{ applicant.display_identifier }}</td><td>{{ applicant.get_status_display }}</td><td>{{ applicant.submitted_at|date:"Y-m-d H:i" }}</td><td><a href="{% url 'applicant_detail' applicant.id %}">View</a></td></tr>
+            {% empty %}
+                <tr><td colspan="6">No applicants yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
