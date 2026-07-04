@@ -1,19 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Onboarding — {{ organization.name }}{% endblock %}
+{% block title %}Onboarding - {{ organization.name }}{% endblock %}
 {% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Secure onboarding form</p>
+        <h1>{{ organization.name }}</h1>
+        <p class="muted">Submit demo identity details and consent for review. Use fake data only.</p>
+    </div>
+</div>
 <div class="card">
-    <h1>{{ organization.name }} Onboarding</h1>
-    <p class="muted">Submit your identity details and consent for review.</p>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        {% for field in form %}
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
-            {% for error in field.errors %}<div style="color:#b91c1c">{{ error }}</div>{% endfor %}
-        {% endfor %}
-        <button class="btn" type="submit">Submit onboarding form</button>
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="{% if field.name == 'address' or field.name == 'consent' %}span-full{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<div style="color:#b91c1c">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="actions">
+            <button class="btn" type="submit">Submit onboarding form</button>
+        </div>
     </form>
 </div>
 {% endblock %}

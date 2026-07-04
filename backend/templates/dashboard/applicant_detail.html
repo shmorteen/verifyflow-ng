@@ -1,31 +1,45 @@
 {% extends "base.html" %}
-{% block title %}{{ applicant.full_name }} — VerifyFlow NG{% endblock %}
+{% block title %}{{ applicant.full_name }} - VerifyFlow NG{% endblock %}
 {% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Applicant record</p>
+        <h1>{{ applicant.full_name }}</h1>
+        <p class="muted">{{ applicant.organization.name }} - {{ applicant.get_applicant_type_display }}</p>
+    </div>
+    <span class="badge {{ applicant.status }}">{{ applicant.get_status_display }}</span>
+</div>
 <div class="card">
-    <h1>{{ applicant.full_name }}</h1>
-    <p class="muted">{{ applicant.organization.name }} · {{ applicant.get_applicant_type_display }}</p>
-    <p><strong>Phone:</strong> {{ applicant.phone }}</p>
-    <p><strong>Email:</strong> {{ applicant.email|default:"N/A" }}</p>
-    <p><strong>Address:</strong> {{ applicant.address|default:"N/A" }}</p>
-    <p><strong>NIN:</strong> {{ applicant.nin_masked|default:"N/A" }}</p>
-    <p><strong>BVN:</strong> {{ applicant.bvn_masked|default:"N/A" }}</p>
-    <p><strong>Status:</strong> {{ applicant.get_status_display }}</p>
-    <a class="btn" href="{% url 'applicant_report_pdf' applicant.id %}">Download PDF Report</a>
+    <div class="grid two">
+        <p><strong>Phone</strong><br>{{ applicant.phone }}</p>
+        <p><strong>Email</strong><br>{{ applicant.email|default:"N/A" }}</p>
+        <p><strong>NIN</strong><br>{{ applicant.nin_masked|default:"N/A" }}</p>
+        <p><strong>BVN</strong><br>{{ applicant.bvn_masked|default:"N/A" }}</p>
+        <p class="span-full"><strong>Address</strong><br>{{ applicant.address|default:"N/A" }}</p>
+    </div>
+    <div class="actions">
+        <a class="btn" href="{% url 'applicant_report_pdf' applicant.id %}">Download PDF Report</a>
+        <a class="btn secondary" href="{% url 'dashboard' %}">Back to dashboard</a>
+    </div>
 </div>
 <div class="card">
     <h2>Run Mock Verification</h2>
     <form method="post" action="{% url 'run_mock_verification' applicant.id %}">
         {% csrf_token %}
-        <label>Verification type</label>
-        <select name="verification_type"><option value="nin">NIN</option><option value="bvn">BVN</option><option value="document_check">Document Check</option><option value="face_match">Face Match</option></select>
-        <button class="btn" type="submit">Run Mock Verification</button>
+        <div class="filter-bar">
+            <div>
+                <label>Verification type</label>
+                <select name="verification_type"><option value="nin">NIN</option><option value="bvn">BVN</option><option value="document_check">Document Check</option><option value="face_match">Face Match</option></select>
+            </div>
+            <button class="btn" type="submit">Run Mock Verification</button>
+        </div>
     </form>
     <h3>Verification History</h3>
-    <ul>{% for verification in applicant.verification_requests.all %}<li>{{ verification.get_verification_type_display }} — {{ verification.get_status_display }} — {{ verification.created_at|date:"Y-m-d H:i" }}</li>{% empty %}<li>No verification requests yet.</li>{% endfor %}</ul>
+    <ul>{% for verification in applicant.verification_requests.all %}<li>{{ verification.get_verification_type_display }} - <span class="badge {{ verification.status }}">{{ verification.get_status_display }}</span> - {{ verification.created_at|date:"Y-m-d H:i" }}</li>{% empty %}<li>No verification requests yet.</li>{% endfor %}</ul>
 </div>
 <div class="card">
     <h2>Documents</h2>
-    <ul>{% for document in applicant.documents.all %}<li><a href="{{ document.file.url }}">{{ document.get_document_type_display }}</a> — {{ document.original_filename }}</li>{% empty %}<li>No documents uploaded.</li>{% endfor %}</ul>
+    <ul>{% for document in applicant.documents.all %}<li>{{ document.get_document_type_display }} - {{ document.original_filename }} - stored as {{ document.file.name }}</li>{% empty %}<li>No documents uploaded.</li>{% endfor %}</ul>
 </div>
 <div class="card">
     <h2>Review</h2>
@@ -35,6 +49,6 @@
         <button class="btn" type="submit">Save Review</button>
     </form>
     <h3>Review History</h3>
-    <ul>{% for review in applicant.reviews.all %}<li>{{ review.reviewed_at|date:"Y-m-d H:i" }} — {{ review.get_status_display }} — {{ review.note|default:"No note" }}</li>{% empty %}<li>No reviews yet.</li>{% endfor %}</ul>
+    <ul>{% for review in applicant.reviews.all %}<li>{{ review.reviewed_at|date:"Y-m-d H:i" }} - {{ review.get_status_display }} - {{ review.note|default:"No note" }}</li>{% empty %}<li>No reviews yet.</li>{% endfor %}</ul>
 </div>
 {% endblock %}

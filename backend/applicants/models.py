@@ -52,7 +52,7 @@ class Applicant(models.Model):
         return self.nin_masked or self.bvn_masked or "No masked ID"
 
     def __str__(self):
-        return f"{self.full_name} — {self.organization.name}"
+        return f"{self.full_name} - {self.organization.name}"
 
 class ConsentRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -79,4 +79,4 @@ class Review(models.Model):
         ordering = ["-reviewed_at"]
 
     def __str__(self):
-        return f"{self.applicant.full_name} — {self.status}"
+        return f"{self.applicant.full_name} - {self.status}"

@@ -11,6 +11,12 @@ from .forms import ApplicantOnboardingForm, CONSENT_TEXT, ReviewForm
 from .models import Applicant, ConsentRecord, Review
 from .utils import get_client_ip, hash_sensitive_value, mask_identity_number
 
+def applicants_for_user(user):
+    applicants = Applicant.objects.select_related("organization")
+    if user.organization:
+        applicants = applicants.filter(organization=user.organization)
+    return applicants
+
 def onboarding_form(request, organization_slug, token):
     onboarding_link = get_object_or_404(OnboardingLink, organization__slug=organization_slug, token=token, is_active=True)
     initial = {"applicant_type": onboarding_link.applicant_type_default}
@@ -55,26 +61,32 @@ def onboarding_form(request, organization_slug, token):
 
 @login_required
 def dashboard(request):
-    applicants = Applicant.objects.select_related("organization").order_by("-submitted_at")
+    applicants = applicants_for_user(request.user).order_by("-submitted_at")
+    onboarding_links = OnboardingLink.objects.filter(is_active=True).select_related("organization").order_by("label")
     if request.user.organization:
-        applicants = applicants.filter(organization=request.user.organization)
+        onboarding_links = onboarding_links.filter(organization=request.user.organization)
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
     if query:
         applicants = applicants.filter(full_name__icontains=query)
     if status:
         applicants = applicants.filter(status=status)
-    return render(request, "dashboard/dashboard.html", {"applicants": applicants, "query": query, "status": status})
+    return render(request, "dashboard/dashboard.html", {
+        "applicants": applicants,
+        "onboarding_links": onboarding_links,
+        "query": query,
+        "status": status,
+    })
 
 @login_required
 def applicant_detail(request, applicant_id):
-    applicant = get_object_or_404(Applicant.objects.select_related("organization"), id=applicant_id)
+    applicant = get_object_or_404(applicants_for_user(request.user), id=applicant_id)
     form = ReviewForm(initial={"status": applicant.status})
     return render(request, "dashboard/applicant_detail.html", {"applicant": applicant, "form": form})
 
 @login_required
 def review_applicant(request, applicant_id):
-    applicant = get_object_or_404(Applicant, id=applicant_id)
+    applicant = get_object_or_404(applicants_for_user(request.user), id=applicant_id)
     form = ReviewForm(request.POST)
     if form.is_valid():
         applicant.status = form.cleaned_data["status"]
@@ -88,9 +100,7 @@ def review_applicant(request, applicant_id):
 
 @login_required
 def export_applicants_csv(request):
-    applicants = Applicant.objects.select_related("organization").order_by("-submitted_at")
-    if request.user.organization:
-        applicants = applicants.filter(organization=request.user.organization)
+    applicants = applicants_for_user(request.user).order_by("-submitted_at")
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="verifyflow_applicants.csv"'
     writer = csv.writer(response)

@@ -1,25 +1,62 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — VerifyFlow NG{% endblock %}
+{% block title %}Dashboard - VerifyFlow NG{% endblock %}
 {% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Operations dashboard</p>
+        <h1>Applicant Dashboard</h1>
+        <p class="muted">Review onboarding submissions, export records, and open the demo client form.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'export_applicants_csv' %}">Export CSV</a>
+</div>
 <div class="card">
-    <h1>Applicant Dashboard</h1>
-    <form method="get" style="display:flex; gap:12px; align-items:end;">
-        <div style="flex:2"><label>Search</label><input name="q" value="{{ query }}" placeholder="Search by name"></div>
-        <div style="flex:1"><label>Status</label><select name="status"><option value="">All</option><option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option><option value="under_review" {% if status == "under_review" %}selected{% endif %}>Under Review</option><option value="approved" {% if status == "approved" %}selected{% endif %}>Approved</option><option value="rejected" {% if status == "rejected" %}selected{% endif %}>Rejected</option></select></div>
+    <form class="filter-bar" method="get">
+        <div><label>Search</label><input name="q" value="{{ query }}" placeholder="Search by applicant name"></div>
+        <div><label>Status</label><select name="status"><option value="">All</option><option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option><option value="under_review" {% if status == "under_review" %}selected{% endif %}>Under Review</option><option value="approved" {% if status == "approved" %}selected{% endif %}>Approved</option><option value="rejected" {% if status == "rejected" %}selected{% endif %}>Rejected</option></select></div>
         <button class="btn" type="submit">Filter</button>
-        <a class="btn" href="{% url 'export_applicants_csv' %}">Export CSV</a>
+        <a class="btn secondary" href="{% url 'dashboard' %}">Reset</a>
     </form>
 </div>
 <div class="card">
-    <table>
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Demo clients</p>
+            <h2>Onboarding Links</h2>
+        </div>
+    </div>
+    <div class="table-wrap">
+    <table class="responsive">
+        <thead><tr><th>Organization</th><th>Label</th><th>Default type</th><th>Public form</th></tr></thead>
+        <tbody>
+            {% for link in onboarding_links %}
+                <tr><td><span class="mobile-label">Organization</span>{{ link.organization.name }}</td><td><span class="mobile-label">Label</span>{{ link.label }}</td><td><span class="mobile-label">Default type</span>{{ link.applicant_type_default|title }}</td><td><a class="btn" href="{{ link.public_path }}">Open demo form</a></td></tr>
+            {% empty %}
+                <tr><td colspan="4">No active onboarding links yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+<div class="card">
+    <h2>Recent Applicants</h2>
+    <div class="table-wrap">
+    <table class="responsive">
         <thead><tr><th>Name</th><th>Type</th><th>Masked ID</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
         <tbody>
             {% for applicant in applicants %}
-                <tr><td>{{ applicant.full_name }}</td><td>{{ applicant.get_applicant_type_display }}</td><td>{{ applicant.display_identifier }}</td><td>{{ applicant.get_status_display }}</td><td>{{ applicant.submitted_at|date:"Y-m-d H:i" }}</td><td><a href="{% url 'applicant_detail' applicant.id %}">View</a></td></tr>
+                <tr>
+                    <td><span class="mobile-label">Name</span><strong>{{ applicant.full_name }}</strong></td>
+                    <td><span class="mobile-label">Type</span>{{ applicant.get_applicant_type_display }}</td>
+                    <td><span class="mobile-label">Masked ID</span>{{ applicant.display_identifier }}</td>
+                    <td><span class="mobile-label">Status</span><span class="badge {{ applicant.status }}">{{ applicant.get_status_display }}</span></td>
+                    <td><span class="mobile-label">Submitted</span>{{ applicant.submitted_at|date:"Y-m-d H:i" }}</td>
+                    <td><a class="btn secondary" href="{% url 'applicant_detail' applicant.id %}">View</a></td>
+                </tr>
             {% empty %}
                 <tr><td colspan="6">No applicants yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 {% endblock %}

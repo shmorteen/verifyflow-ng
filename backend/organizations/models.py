@@ -49,4 +49,4 @@ class OnboardingLink(models.Model):
         return f"/onboard/{self.organization.slug}/{self.token}/"
 
     def __str__(self):
-        return f"{self.organization.name} — {self.label}"
+        return f"{self.organization.name} - {self.label}"

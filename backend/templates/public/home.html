@@ -1,19 +1,29 @@
 {% extends "base.html" %}
-{% block title %}VerifyFlow NG — Identity Onboarding{% endblock %}
+{% block title %}VerifyFlow NG - Identity Onboarding{% endblock %}
 {% block content %}
-<section class="card">
-    <h1>Digital identity onboarding for Nigerian businesses</h1>
-    <p class="muted">Collect identity details, consent, ID documents, selfies, review notes, and verification reports in one workflow.</p>
-    <a class="btn" href="/dashboard/">Open Dashboard</a>
+<section class="hero">
+    <div class="hero-inner">
+        <p class="eyebrow">Identity onboarding and compliance automation</p>
+        <h1>VerifyFlow NG</h1>
+        <p>Send one secure onboarding link, collect consent-backed identity details, review every submission, and generate a clean verification report for Nigerian business workflows.</p>
+        <div class="hero-actions">
+            <a class="btn light" href="/dashboard/">Open demo dashboard</a>
+            <a class="btn secondary" href="/admin/">Admin login</a>
+        </div>
+    </div>
 </section>
-<section class="grid">
-    <div class="card"><h3>Tenant Verification</h3><p>Onboard tenants with NIN/BVN fields, ID upload, selfie, guarantor details, and consent.</p></div>
-    <div class="card"><h3>Cooperatives & Loans</h3><p>Collect member identity records and keep a cleaner audit trail before approval.</p></div>
-    <div class="card"><h3>HR & Recruitment</h3><p>Capture employee identity documents, emergency contact, and onboarding evidence.</p></div>
-    <div class="card"><h3>Schools & Training</h3><p>Digitally onboard students and keep structured identity records.</p></div>
+<section class="grid section">
+    <div class="card stat"><h3>Tenant verification</h3><p class="muted">NIN/BVN fields, ID upload, selfie, guarantor details, and consent in one guided form.</p></div>
+    <div class="card stat"><h3>Cooperatives and loans</h3><p class="muted">Collect member identity records and keep a cleaner approval audit trail.</p></div>
+    <div class="card stat"><h3>HR and recruitment</h3><p class="muted">Capture applicant identity documents and review notes before onboarding.</p></div>
+    <div class="card stat"><h3>Schools and training</h3><p class="muted">Digitally onboard students with structured identity records.</p></div>
 </section>
-<section class="card">
-    <h2>Ad-ready positioning</h2>
-    <p><strong>Stop onboarding people through scattered WhatsApp messages.</strong> Send one secure form, collect required identity records, and generate a clean PDF report.</p>
+<section class="card section">
+    <p class="eyebrow">For demo clients</p>
+    <h2>Stop chasing onboarding details across chat threads.</h2>
+    <p class="muted">Use the demo dashboard to open a public onboarding link, submit a fake applicant, run mock verification, export CSV, and download the PDF report.</p>
+    <div class="actions">
+        <a class="btn" href="/dashboard/">Start the demo flow</a>
+    </div>
 </section>
 {% endblock %}

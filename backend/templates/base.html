@@ -5,26 +5,85 @@
     <title>{% block title %}VerifyFlow NG{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f7f8fb; color: #172033; }
-        header { background: #0f172a; color: white; padding: 16px 28px; display: flex; justify-content: space-between; }
-        header a { color: white; text-decoration: none; margin-left: 16px; }
-        .container { max-width: 1080px; margin: 0 auto; padding: 28px; }
-        .card { background: white; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08); }
-        .btn { background: #0f172a; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; border: 0; cursor: pointer; display: inline-block; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
-        label { font-weight: 600; display: block; margin-top: 12px; }
+        :root {
+            --ink: #172033;
+            --muted: #64748b;
+            --line: #dbe3ef;
+            --panel: #ffffff;
+            --bg: #f5f7fb;
+            --brand: #0f766e;
+            --brand-dark: #134e4a;
+            --accent: #f59e0b;
+            --danger: #b91c1c;
+            --radius: 8px;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; background: var(--bg); color: var(--ink); line-height: 1.5; }
+        header { background: #102033; color: white; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; gap: 18px; position: sticky; top: 0; z-index: 10; }
+        header a { color: white; text-decoration: none; margin-left: 16px; font-weight: 700; font-size: 14px; }
+        h1, h2, h3 { line-height: 1.12; margin: 0 0 12px; }
+        p { margin: 0 0 12px; }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+        .brand-mark { background: var(--brand); border-radius: 6px; display: inline-grid; height: 30px; place-items: center; width: 30px; }
+        .container { max-width: 1120px; margin: 0 auto; padding: 28px; }
+        .section { margin: 22px 0; }
+        .card { background: var(--panel); border: 1px solid #e7edf5; border-radius: var(--radius); padding: 24px; margin: 16px 0; box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06); }
+        .hero { background: linear-gradient(135deg, #102033 0%, #134e4a 58%, #b45309 100%); color: white; border-radius: 0; margin: -28px calc(50% - 50vw) 24px; padding: 64px max(28px, calc((100vw - 1120px) / 2 + 28px)); }
+        .hero-inner { max-width: 760px; }
+        .hero h1 { font-size: 48px; max-width: 720px; }
+        .hero p { color: #d9e7e4; font-size: 18px; max-width: 650px; }
+        .hero-actions, .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+        .btn { background: var(--brand); color: white; padding: 10px 16px; border-radius: var(--radius); text-decoration: none; border: 0; cursor: pointer; display: inline-block; font-weight: 800; }
+        .btn.secondary { background: #e6f3f1; color: var(--brand-dark); }
+        .btn.light { background: white; color: #102033; }
+        .btn.full { text-align: center; width: 100%; }
+        input, select, textarea { width: 100%; padding: 11px 12px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: var(--radius); background: white; color: var(--ink); }
+        input:focus, select:focus, textarea:focus { border-color: var(--brand); outline: 3px solid rgba(15, 118, 110, 0.14); }
+        label { font-weight: 700; display: block; margin-top: 12px; }
+        small { display: block; margin-top: 6px; }
         table { width: 100%; border-collapse: collapse; background: white; }
-        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        th { background: #f1f5f9; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-        .muted { color: #64748b; }
+        th, td { padding: 13px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: middle; }
+        th { background: #f8fafc; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0; }
+        tr:hover td { background: #fbfdfa; }
+        .table-wrap { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: var(--radius); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+        .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; }
+        .span-full { grid-column: 1 / -1; }
+        .muted { color: var(--muted); }
+        .eyebrow { color: var(--brand); font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
+        .stat { border-left: 4px solid var(--brand); padding-left: 14px; }
+        .page-head { align-items: end; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 14px; }
+        .filter-bar { align-items: end; display: grid; gap: 12px; grid-template-columns: 2fr 1fr auto auto; }
+        .badge { border-radius: 999px; display: inline-block; font-size: 12px; font-weight: 800; padding: 4px 10px; white-space: nowrap; }
+        .badge.pending { background: #fff7ed; color: #9a3412; }
+        .badge.under_review { background: #eff6ff; color: #1d4ed8; }
+        .badge.approved, .badge.verified { background: #ecfdf5; color: #047857; }
+        .badge.rejected, .badge.failed { background: #fef2f2; color: #b91c1c; }
         .messages { list-style: none; padding: 0; }
-        .messages li { background: #dcfce7; padding: 10px; border-radius: 8px; margin: 8px 0; }
+        .messages li { background: #dcfce7; border: 1px solid #bbf7d0; padding: 10px 12px; border-radius: var(--radius); margin: 8px 0; }
+        .errorlist { color: var(--danger); margin: 8px 0; padding-left: 18px; }
+        .mobile-label { display: none; }
+        @media (max-width: 760px) {
+            header { align-items: flex-start; flex-direction: column; padding: 14px 18px; }
+            header a { margin: 0 14px 0 0; }
+            .container { padding: 20px 16px; }
+            .hero { margin: -20px -16px 18px; padding: 44px 20px; }
+            .hero h1 { font-size: 34px; }
+            .grid.two, .form-grid { grid-template-columns: 1fr; }
+            .filter-bar { grid-template-columns: 1fr; }
+            .page-head { align-items: flex-start; flex-direction: column; }
+            table.responsive thead { display: none; }
+            table.responsive, table.responsive tbody, table.responsive tr, table.responsive td { display: block; width: 100%; }
+            table.responsive tr { border-bottom: 1px solid #e2e8f0; padding: 10px 0; }
+            table.responsive td { border: 0; padding: 6px 12px; }
+            .mobile-label { color: var(--muted); display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+        }
     </style>
 </head>
 <body>
 <header>
-    <div><strong>VerifyFlow NG</strong></div>
+    <div class="brand"><span class="brand-mark">V</span><span>VerifyFlow NG</span></div>
     <nav><a href="/">Home</a><a href="/dashboard/">Dashboard</a><a href="/admin/">Admin</a></nav>
 </header>
 <main class="container">

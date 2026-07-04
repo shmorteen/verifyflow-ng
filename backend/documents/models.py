@@ -26,4 +26,4 @@ class ApplicantDocument(models.Model):
         ordering = ["-uploaded_at"]
 
     def __str__(self):
-        return f"{self.applicant.full_name} — {self.document_type}"
+        return f"{self.applicant.full_name} - {self.document_type}"
