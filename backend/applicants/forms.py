@@ -25,6 +25,10 @@ class ApplicantOnboardingForm(forms.Form):
     selfie = forms.FileField(required=False)
     consent = forms.BooleanField(required=True, label=CONSENT_TEXT)
 
+    def __init__(self, *args, consent_text=CONSENT_TEXT, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["consent"].label = consent_text
+
     def clean(self):
         cleaned = super().clean()
         if not cleaned.get("nin") and not cleaned.get("bvn"):

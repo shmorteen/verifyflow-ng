@@ -54,6 +54,21 @@ class Applicant(models.Model):
     def __str__(self):
         return f"{self.full_name} - {self.organization.name}"
 
+
+class ConsentTemplate(models.Model):
+    version = models.CharField(max_length=30, unique=True)
+    title = models.CharField(max_length=180)
+    body = models.TextField()
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.version})"
+
+
 class ConsentRecord(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     applicant = models.OneToOneField(Applicant, on_delete=models.CASCADE, related_name="consent")

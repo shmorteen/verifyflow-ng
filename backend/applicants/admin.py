@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Applicant, ConsentRecord, Review
+from .models import Applicant, ConsentRecord, ConsentTemplate, Review
 
 @admin.register(Applicant)
 class ApplicantAdmin(admin.ModelAdmin):
@@ -11,7 +11,21 @@ class ApplicantAdmin(admin.ModelAdmin):
 @admin.register(ConsentRecord)
 class ConsentRecordAdmin(admin.ModelAdmin):
     list_display = ("applicant", "accepted", "accepted_at", "consent_version")
-    readonly_fields = ("accepted_at", "ip_address", "user_agent")
+    readonly_fields = (
+        "consent_text",
+        "consent_version",
+        "accepted_at",
+        "ip_address",
+        "user_agent",
+    )
+
+
+@admin.register(ConsentTemplate)
+class ConsentTemplateAdmin(admin.ModelAdmin):
+    list_display = ("title", "version", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("title", "version", "body")
+    readonly_fields = ("created_at",)
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):

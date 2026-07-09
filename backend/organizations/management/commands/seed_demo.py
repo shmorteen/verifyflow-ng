@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from applicants.forms import CONSENT_TEXT
+from applicants.models import ConsentTemplate
 from organizations.models import OnboardingLink, Organization
 
 class Command(BaseCommand):
@@ -34,6 +36,14 @@ class Command(BaseCommand):
         if created:
             user.set_password("ChangeMe123!")
             user.save()
+        ConsentTemplate.objects.get_or_create(
+            version="v1",
+            defaults={
+                "title": "Demo onboarding consent",
+                "body": CONSENT_TEXT,
+                "is_active": True,
+            },
+        )
         self.stdout.write(self.style.SUCCESS("Demo data ready."))
         self.stdout.write("Admin username/email: admin@verifyflow.local")
         self.stdout.write("Admin password: ChangeMe123!")

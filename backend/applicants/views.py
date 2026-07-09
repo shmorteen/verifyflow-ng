@@ -8,7 +8,7 @@ from audit.services import log_event
 from documents.models import ApplicantDocument
 from organizations.models import OnboardingLink
 from .forms import ApplicantOnboardingForm, CONSENT_TEXT, ReviewForm
-from .models import Applicant, ConsentRecord, Review
+from .models import Applicant, ConsentRecord, ConsentTemplate, Review
 from .utils import get_client_ip, hash_sensitive_value, mask_identity_number
 
 def applicants_for_user(user):
@@ -19,8 +19,16 @@ def applicants_for_user(user):
 
 def onboarding_form(request, organization_slug, token):
     onboarding_link = get_object_or_404(OnboardingLink, organization__slug=organization_slug, token=token, is_active=True)
+    consent_template = ConsentTemplate.objects.filter(is_active=True).first()
+    consent_text = consent_template.body if consent_template else CONSENT_TEXT
+    consent_version = consent_template.version if consent_template else "v1"
     initial = {"applicant_type": onboarding_link.applicant_type_default}
-    form = ApplicantOnboardingForm(request.POST or None, request.FILES or None, initial=initial)
+    form = ApplicantOnboardingForm(
+        request.POST or None,
+        request.FILES or None,
+        initial=initial,
+        consent_text=consent_text,
+    )
     if request.method == "POST" and form.is_valid():
         applicant = Applicant.objects.create(
             organization=onboarding_link.organization,
@@ -42,8 +50,8 @@ def onboarding_form(request, organization_slug, token):
         )
         ConsentRecord.objects.create(
             applicant=applicant,
-            consent_text=CONSENT_TEXT,
-            consent_version="v1",
+            consent_text=consent_text,
+            consent_version=consent_version,
             accepted=True,
             accepted_at=timezone.now(),
             ip_address=get_client_ip(request) or None,

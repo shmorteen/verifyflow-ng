@@ -9,6 +9,26 @@ from verification import views as verification_views
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="public/home.html"), name="home"),
+    path(
+        "privacy/",
+        TemplateView.as_view(template_name="legal/privacy_policy.html"),
+        name="privacy_policy",
+    ),
+    path(
+        "terms/",
+        TemplateView.as_view(template_name="legal/terms_of_use.html"),
+        name="terms_of_use",
+    ),
+    path(
+        "data-retention/",
+        TemplateView.as_view(template_name="legal/data_retention.html"),
+        name="data_retention_policy",
+    ),
+    path(
+        "data-subject-rights/",
+        TemplateView.as_view(template_name="legal/data_subject_rights.html"),
+        name="data_subject_rights",
+    ),
     path("admin/", admin.site.urls),
     path("dashboard/", applicant_views.dashboard, name="dashboard"),
     path("dashboard/applicants/<uuid:applicant_id>/", applicant_views.applicant_detail, name="applicant_detail"),
