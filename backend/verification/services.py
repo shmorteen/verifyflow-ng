@@ -1,32 +1,48 @@
-import uuid
 from .models import VerificationRequest
+from .providers import (
+    MockVerificationProvider,
+    ProviderResult,
+    redact_sensitive_text,
+    sanitize_response_summary,
+)
 
-class MockVerificationProvider:
-    provider_name = "mock"
 
-    def verify(self, applicant, verification_type):
-        seed = str(applicant.id)[-1]
-        status = VerificationRequest.Statuses.VERIFIED if seed in "02468abcdef" else VerificationRequest.Statuses.FAILED
-        return {
-            "provider": self.provider_name,
-            "status": status,
-            "request_reference": f"mock-{uuid.uuid4()}",
-            "summary": {
-                "message": "Mock verification result. Replace with real provider integration later.",
-                "applicant": applicant.full_name,
-                "verification_type": verification_type,
-                "matched": status == VerificationRequest.Statuses.VERIFIED,
-            },
-        }
+PROVIDER_METHODS = {
+    VerificationRequest.VerificationTypes.NIN: "verify_nin",
+    VerificationRequest.VerificationTypes.BVN: "verify_bvn",
+    VerificationRequest.VerificationTypes.DOCUMENT_CHECK: "verify_document",
+    VerificationRequest.VerificationTypes.FACE_MATCH: "verify_face_match",
+}
 
-def run_mock_verification_for_applicant(applicant, verification_type=VerificationRequest.VerificationTypes.NIN):
-    provider = MockVerificationProvider()
-    result = provider.verify(applicant, verification_type)
+
+def run_verification_for_applicant(applicant, verification_type, provider):
+    method_name = PROVIDER_METHODS.get(verification_type)
+    if method_name is None:
+        raise ValueError("Unsupported verification type.")
+
+    try:
+        result = getattr(provider, method_name)(applicant)
+        if not isinstance(result, ProviderResult):
+            raise TypeError("Provider returned an invalid result.")
+    except Exception as exc:
+        result = ProviderResult(
+            status=VerificationRequest.Statuses.ERROR,
+            error_message=redact_sensitive_text(exc),
+        )
+
     return VerificationRequest.objects.create(
         applicant=applicant,
-        provider=result["provider"],
+        provider=provider.provider_name,
         verification_type=verification_type,
-        status=result["status"],
-        request_reference=result["request_reference"],
-        response_summary=result["summary"],
+        status=result.status,
+        request_reference=result.reference,
+        response_summary=sanitize_response_summary(result.response_summary),
+        error_message=redact_sensitive_text(result.error_message),
+    )
+
+def run_mock_verification_for_applicant(applicant, verification_type=VerificationRequest.VerificationTypes.NIN):
+    return run_verification_for_applicant(
+        applicant,
+        verification_type,
+        MockVerificationProvider(),
     )

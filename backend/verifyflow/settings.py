@@ -71,5 +71,7 @@ LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(5 * 1024 * 1024)))
+DOJAH_API_KEY = os.getenv("DOJAH_API_KEY", "")
+SMILE_ID_API_KEY = os.getenv("SMILE_ID_API_KEY", "")
 
 REST_FRAMEWORK = {"DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"]}
