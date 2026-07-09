@@ -53,13 +53,25 @@
         .muted { color: var(--muted); }
         .eyebrow { color: var(--brand); font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
         .stat { border-left: 4px solid var(--brand); padding-left: 14px; }
+        .summary-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 16px 0; }
+        .summary-card { background: white; border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 16px; }
+        .summary-card strong { display: block; font-size: 28px; line-height: 1; margin-top: 6px; }
         .page-head { align-items: end; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 14px; }
-        .filter-bar { align-items: end; display: grid; gap: 12px; grid-template-columns: 2fr 1fr auto auto; }
+        .filter-bar { align-items: end; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+        .filter-actions { align-items: end; display: flex; flex-wrap: wrap; gap: 10px; }
         .badge { border-radius: 999px; display: inline-block; font-size: 12px; font-weight: 800; padding: 4px 10px; white-space: nowrap; }
         .badge.pending { background: #fff7ed; color: #9a3412; }
         .badge.under_review { background: #eff6ff; color: #1d4ed8; }
-        .badge.approved, .badge.verified { background: #ecfdf5; color: #047857; }
+        .badge.approved, .badge.verified, .badge.accepted { background: #ecfdf5; color: #047857; }
         .badge.rejected, .badge.failed { background: #fef2f2; color: #b91c1c; }
+        .badge.error { background: #fef2f2; color: #991b1b; }
+        .badge.not_started { background: #f1f5f9; color: #475569; }
+        .toolbar { align-items: end; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-bottom: 14px; }
+        .bulk-actions { align-items: end; display: flex; flex-wrap: wrap; gap: 10px; }
+        .pagination { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+        .empty-state { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius); color: var(--muted); padding: 20px; text-align: center; }
+        .audit-list { list-style: none; margin: 0; padding: 0; }
+        .audit-list li { border-bottom: 1px solid #e2e8f0; padding: 10px 0; }
         .messages { list-style: none; padding: 0; }
         .messages li { background: #dcfce7; border: 1px solid #bbf7d0; padding: 10px 12px; border-radius: var(--radius); margin: 8px 0; }
         .errorlist { color: var(--danger); margin: 8px 0; padding-left: 18px; }

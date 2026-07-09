@@ -10,17 +10,42 @@
     <span class="badge {{ applicant.status }}">{{ applicant.get_status_display }}</span>
 </div>
 <div class="card">
+    <h2>Identity Summary</h2>
     <div class="grid two">
         <p><strong>Phone</strong><br>{{ applicant.phone }}</p>
         <p><strong>Email</strong><br>{{ applicant.email|default:"N/A" }}</p>
         <p><strong>NIN</strong><br>{{ applicant.nin_masked|default:"N/A" }}</p>
         <p><strong>BVN</strong><br>{{ applicant.bvn_masked|default:"N/A" }}</p>
+        <p><strong>Date of birth</strong><br>{{ applicant.date_of_birth|default:"N/A" }}</p>
+        <p><strong>Gender</strong><br>{{ applicant.get_gender_display|default:"N/A" }}</p>
         <p class="span-full"><strong>Address</strong><br>{{ applicant.address|default:"N/A" }}</p>
     </div>
     <div class="actions">
         <a class="btn" href="{% url 'applicant_report_pdf' applicant.id %}">Download PDF Report</a>
         <a class="btn secondary" href="{% url 'dashboard' %}">Back to dashboard</a>
     </div>
+</div>
+<div class="card">
+    <h2>Guarantor / Next-of-Kin</h2>
+    <div class="grid two">
+        <p><strong>Name</strong><br>{{ applicant.guarantor_name|default:"N/A" }}</p>
+        <p><strong>Phone</strong><br>{{ applicant.guarantor_phone|default:"N/A" }}</p>
+        <p><strong>Relationship</strong><br>{{ applicant.guarantor_relationship|default:"N/A" }}</p>
+    </div>
+</div>
+<div class="card">
+    <h2>Consent Record</h2>
+    {% if applicant.consent %}
+        <div class="grid two">
+            <p><strong>Accepted</strong><br>{{ applicant.consent.accepted|yesno:"Yes,No" }}</p>
+            <p><strong>Accepted at</strong><br>{{ applicant.consent.accepted_at|date:"Y-m-d H:i"|default:"N/A" }}</p>
+            <p><strong>Consent version</strong><br>{{ applicant.consent.consent_version }}</p>
+            <p><strong>IP address</strong><br>{{ applicant.consent.ip_address|default:"N/A" }}</p>
+            <p class="span-full"><strong>Consent text snapshot</strong><br>{{ applicant.consent.consent_text }}</p>
+        </div>
+    {% else %}
+        <div class="empty-state">No consent record found.</div>
+    {% endif %}
 </div>
 <div class="card">
     <h2>Run Mock Verification</h2>
@@ -39,7 +64,39 @@
 </div>
 <div class="card">
     <h2>Documents</h2>
-    <ul>{% for document in applicant.documents.all %}<li>{{ document.get_document_type_display }} - {{ document.original_filename }} - stored as {{ document.file.name }}</li>{% empty %}<li>No documents uploaded.</li>{% endfor %}</ul>
+    <div class="table-wrap">
+    <table class="responsive">
+        <thead><tr><th>Category</th><th>Filename</th><th>Size</th><th>Status</th><th>Uploaded</th><th>Review</th><th></th></tr></thead>
+        <tbody>
+            {% for document in applicant.documents.all %}
+                <tr>
+                    <td><span class="mobile-label">Category</span>{{ document.get_document_type_display }}</td>
+                    <td><span class="mobile-label">Filename</span>{{ document.original_filename|default:"Stored document" }}</td>
+                    <td><span class="mobile-label">Size</span>{{ document.size|filesizeformat }}</td>
+                    <td><span class="mobile-label">Status</span><span class="badge {{ document.review_status }}">{{ document.get_review_status_display }}</span></td>
+                    <td><span class="mobile-label">Uploaded</span>{{ document.uploaded_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="mobile-label">Review</span>
+                        {% if document.review_note %}<p class="muted">{{ document.review_note }}</p>{% endif %}
+                        {% if document.reviewed_by %}<small class="muted">By {{ document.reviewed_by }} on {{ document.reviewed_at|date:"Y-m-d H:i" }}</small>{% endif %}
+                        <form method="post" action="{% url 'review_document' document.id %}">
+                            {% csrf_token %}
+                            <label for="review_note_{{ document.id }}">Review note</label>
+                            <textarea id="review_note_{{ document.id }}" name="review_note" rows="2">{{ document.review_note }}</textarea>
+                            <div class="actions">
+                                <button class="btn" type="submit" name="review_status" value="accepted">Accept</button>
+                                <button class="btn secondary" type="submit" name="review_status" value="rejected">Reject</button>
+                            </div>
+                        </form>
+                    </td>
+                    <td><a class="btn secondary" href="{% url 'download_document' document.id %}">Download</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7">No documents uploaded.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
 </div>
 <div class="card">
     <h2>Review</h2>
@@ -50,5 +107,18 @@
     </form>
     <h3>Review History</h3>
     <ul>{% for review in applicant.reviews.all %}<li>{{ review.reviewed_at|date:"Y-m-d H:i" }} - {{ review.get_status_display }} - {{ review.note|default:"No note" }}</li>{% empty %}<li>No reviews yet.</li>{% endfor %}</ul>
+</div>
+<div class="card">
+    <h2>Audit Trail</h2>
+    <ul class="audit-list">
+        {% for entry in audit_logs %}
+            <li>
+                <strong>{{ entry.action }}</strong><br>
+                <span class="muted">{{ entry.created_at|date:"Y-m-d H:i" }} by {{ entry.actor|default:"System" }} - {{ entry.entity_type }}</span>
+            </li>
+        {% empty %}
+            <li><div class="empty-state">No audit events recorded for this applicant yet.</div></li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

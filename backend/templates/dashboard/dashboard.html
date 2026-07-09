@@ -7,14 +7,28 @@
         <h1>Applicant Dashboard</h1>
         <p class="muted">Review onboarding submissions, export records, and open the demo client form.</p>
     </div>
-    <a class="btn secondary" href="{% url 'export_applicants_csv' %}">Export CSV</a>
+    <a class="btn secondary" href="{% url 'export_applicants_csv' %}?{{ request.GET.urlencode }}">Export filtered CSV</a>
+</div>
+<div class="summary-grid">
+    <div class="summary-card"><span class="muted">Total applicants</span><strong>{{ summary.total }}</strong></div>
+    <div class="summary-card"><span class="muted">Pending</span><strong>{{ summary.pending }}</strong></div>
+    <div class="summary-card"><span class="muted">Under review</span><strong>{{ summary.under_review }}</strong></div>
+    <div class="summary-card"><span class="muted">Approved</span><strong>{{ summary.approved }}</strong></div>
+    <div class="summary-card"><span class="muted">Rejected</span><strong>{{ summary.rejected }}</strong></div>
+    <div class="summary-card"><span class="muted">Docs pending</span><strong>{{ summary.documents_pending }}</strong></div>
+    <div class="summary-card"><span class="muted">Verified passed</span><strong>{{ summary.verification_passed }}</strong></div>
+    <div class="summary-card"><span class="muted">Verified failed</span><strong>{{ summary.verification_failed }}</strong></div>
 </div>
 <div class="card">
     <form class="filter-bar" method="get">
-        <div><label>Search</label><input name="q" value="{{ query }}" placeholder="Search by applicant name"></div>
-        <div><label>Status</label><select name="status"><option value="">All</option><option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option><option value="under_review" {% if status == "under_review" %}selected{% endif %}>Under Review</option><option value="approved" {% if status == "approved" %}selected{% endif %}>Approved</option><option value="rejected" {% if status == "rejected" %}selected{% endif %}>Rejected</option></select></div>
-        <button class="btn" type="submit">Filter</button>
-        <a class="btn secondary" href="{% url 'dashboard' %}">Reset</a>
+        <div><label>Search</label><input name="q" value="{{ filters.query }}" placeholder="Name, phone, email, masked ID"></div>
+        <div><label>Status</label><select name="status"><option value="">All</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div><label>Applicant type</label><select name="applicant_type"><option value="">All</option>{% for value,label in applicant_type_choices %}<option value="{{ value }}" {% if filters.applicant_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div><label>Date from</label><input type="date" name="date_from" value="{{ filters.date_from }}"></div>
+        <div><label>Date to</label><input type="date" name="date_to" value="{{ filters.date_to }}"></div>
+        <div><label>Verification</label><select name="verification_status"><option value="">All</option>{% for value,label in verification_status_choices %}<option value="{{ value }}" {% if filters.verification_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div><label>Document review</label><select name="document_review_status"><option value="">All</option>{% for value,label in document_review_status_choices %}<option value="{{ value }}" {% if filters.document_review_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div class="filter-actions"><button class="btn" type="submit">Filter</button><a class="btn secondary" href="{% url 'dashboard' %}">Reset</a></div>
     </form>
 </div>
 <div class="card">
@@ -26,26 +40,49 @@
     </div>
     <div class="table-wrap">
     <table class="responsive">
-        <thead><tr><th>Organization</th><th>Label</th><th>Default type</th><th>Public form</th></tr></thead>
+        <thead><tr><th>Organization</th><th>Label</th><th>Default type</th><th>Public form</th><th></th></tr></thead>
         <tbody>
             {% for link in onboarding_links %}
-                <tr><td><span class="mobile-label">Organization</span>{{ link.organization.name }}</td><td><span class="mobile-label">Label</span>{{ link.label }}</td><td><span class="mobile-label">Default type</span>{{ link.applicant_type_default|title }}</td><td><a class="btn" href="{{ link.public_path }}">Open demo form</a></td></tr>
+                <tr>
+                    <td><span class="mobile-label">Organization</span>{{ link.organization.name }}</td>
+                    <td><span class="mobile-label">Label</span>{{ link.label }}</td>
+                    <td><span class="mobile-label">Default type</span>{{ link.applicant_type_default|title }}</td>
+                    <td><span class="mobile-label">Public form</span><a href="{{ link.public_path }}">{{ request.scheme }}://{{ request.get_host }}{{ link.public_path }}</a></td>
+                    <td><button class="btn secondary" type="button" data-copy="{{ request.scheme }}://{{ request.get_host }}{{ link.public_path }}">Copy link</button></td>
+                </tr>
             {% empty %}
-                <tr><td colspan="4">No active onboarding links yet.</td></tr>
+                <tr><td colspan="5"><div class="empty-state">No active onboarding links yet.</div></td></tr>
             {% endfor %}
         </tbody>
     </table>
     </div>
 </div>
 <div class="card">
-    <h2>Recent Applicants</h2>
+    <form method="post" action="{% url 'bulk_applicant_action' %}">
+    {% csrf_token %}
+    <div class="toolbar">
+        <h2>Recent Applicants</h2>
+        <div class="bulk-actions">
+            <label for="bulk_action">Bulk action</label>
+            <select id="bulk_action" name="bulk_action">
+                <option value="">Choose action</option>
+                <option value="mark_under_review">Mark under review</option>
+                <option value="approve">Approve</option>
+                <option value="reject">Reject</option>
+                <option value="export_selected">Export selected CSV</option>
+            </select>
+            <button class="btn" type="submit">Apply</button>
+        </div>
+    </div>
     <div class="table-wrap">
     <table class="responsive">
-        <thead><tr><th>Name</th><th>Type</th><th>Masked ID</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+        <thead><tr><th><span class="mobile-label">Select</span></th><th>Name</th><th>Phone</th><th>Type</th><th>Masked ID</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
         <tbody>
             {% for applicant in applicants %}
                 <tr>
+                    <td><input type="checkbox" name="selected_applicants" value="{{ applicant.id }}" aria-label="Select {{ applicant.full_name }}"></td>
                     <td><span class="mobile-label">Name</span><strong>{{ applicant.full_name }}</strong></td>
+                    <td><span class="mobile-label">Phone</span>{{ applicant.phone }}</td>
                     <td><span class="mobile-label">Type</span>{{ applicant.get_applicant_type_display }}</td>
                     <td><span class="mobile-label">Masked ID</span>{{ applicant.display_identifier }}</td>
                     <td><span class="mobile-label">Status</span><span class="badge {{ applicant.status }}">{{ applicant.get_status_display }}</span></td>
@@ -53,10 +90,27 @@
                     <td><a class="btn secondary" href="{% url 'applicant_detail' applicant.id %}">View</a></td>
                 </tr>
             {% empty %}
-                <tr><td colspan="6">No applicants yet.</td></tr>
+                <tr><td colspan="8"><div class="empty-state">No applicants match the current filters.</div></td></tr>
             {% endfor %}
         </tbody>
     </table>
     </div>
+    </form>
+    {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}<a class="btn secondary" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+            <span class="muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn secondary" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+        </div>
+    {% endif %}
 </div>
+<script>
+document.querySelectorAll("[data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(button.dataset.copy);
+        button.textContent = "Copied";
+        setTimeout(() => { button.textContent = "Copy link"; }, 1600);
+    });
+});
+</script>
 {% endblock %}

@@ -1,4 +1,7 @@
 from django import forms
+from django.conf import settings
+from documents.models import ApplicantDocument
+from documents.validators import ALLOWED_FILE_TYPES_TEXT, format_file_size, validate_uploaded_document
 from .models import Applicant
 
 CONSENT_TEXT = (
@@ -21,19 +24,44 @@ class ApplicantOnboardingForm(forms.Form):
     guarantor_name = forms.CharField(max_length=180, required=False)
     guarantor_phone = forms.CharField(max_length=30, required=False)
     guarantor_relationship = forms.CharField(max_length=80, required=False)
-    id_document = forms.FileField(required=False)
-    selfie = forms.FileField(required=False)
+    id_document_type = forms.ChoiceField(
+        choices=[
+            (ApplicantDocument.DocumentTypes.ID_CARD, "ID Card"),
+            (ApplicantDocument.DocumentTypes.NIN_SLIP, "NIN Slip"),
+            (ApplicantDocument.DocumentTypes.PASSPORT, "Passport"),
+            (ApplicantDocument.DocumentTypes.UTILITY_BILL, "Utility Bill"),
+            (ApplicantDocument.DocumentTypes.OTHER, "Other"),
+        ],
+        required=False,
+        label="Identity document category",
+    )
+    id_document = forms.FileField(required=False, label="Identity document")
+    selfie = forms.FileField(required=False, label="Selfie")
     consent = forms.BooleanField(required=True, label=CONSENT_TEXT)
 
     def __init__(self, *args, consent_text=CONSENT_TEXT, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["consent"].label = consent_text
+        upload_help = (
+            f"Accepted file types: {ALLOWED_FILE_TYPES_TEXT}. "
+            f"Maximum size: {format_file_size(settings.MAX_UPLOAD_SIZE_BYTES)}."
+        )
+        self.fields["id_document"].help_text = upload_help
+        self.fields["selfie"].help_text = upload_help
 
     def clean(self):
         cleaned = super().clean()
         if not cleaned.get("nin") and not cleaned.get("bvn"):
             raise forms.ValidationError("Provide at least a NIN or BVN for onboarding.")
+        if cleaned.get("id_document") and not cleaned.get("id_document_type"):
+            self.add_error("id_document_type", "Choose the document category for the uploaded identity document.")
         return cleaned
+
+    def clean_id_document(self):
+        return validate_uploaded_document(self.cleaned_data.get("id_document"))
+
+    def clean_selfie(self):
+        return validate_uploaded_document(self.cleaned_data.get("selfie"))
 
 class ReviewForm(forms.Form):
     status = forms.ChoiceField(choices=Applicant.Statuses.choices)
